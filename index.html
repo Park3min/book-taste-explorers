@@ -2357,13 +2357,17 @@ const NS=(new URLSearchParams(location.search).get('ns'))||'bte-park3min-2026-bo
 function dayKey(){return new Date(Date.now()+9*3600e3).toISOString().slice(0,10)}
 function cnt(k){if(/[?&]nocount/.test(location.search))return;try{fetch('https://abacus.jasoncameron.dev/hit/'+NS+'/'+k,{keepalive:true}).catch(()=>{})}catch(e){}try{const o=JSON.parse(localStorage.getItem('bte_local')||'{}');o[k]=(o[k]||0)+1;localStorage.setItem('bte_local',JSON.stringify(o))}catch(e){}}
 async function getCnt(k){try{const r=await fetch('https://abacus.jasoncameron.dev/get/'+NS+'/'+k);if(!r.ok)return 0;return (await r.json()).value||0}catch(e){return null}}
-async function stats(day){day=day||dayKey();$.innerHTML='<h2>📊 방문 집계</h2><div class="card center"><small>불러오는 중...</small></div>';
- const keys=['start','done','start-'+day,'done-'+day];const gk=[1,2,3,4].map(g=>'grade-'+g),tk=['M','E','F','K','H'].map(t=>'type-'+t);
- const all=keys.concat(gk,tk);const vals=await Promise.all(all.map(getCnt));const v=k=>vals[all.indexOf(k)];const f=x=>x===null?'오류':x;
- const gn=['저학년','중학년','고학년','중학생'];
- $.innerHTML='<h2>📊 방문 집계</h2><div class="card center"><small>'+day+' (오늘)</small><h1 style="margin:6px 0">'+f(v('done-'+day))+'명</h1><small>결과까지 본 사람 · 시작만 한 사람 포함 '+f(v('start-'+day))+'명</small></div>'
- +'<div class="card"><b>전체 누적</b><p>시작 '+f(v('start'))+'명 / 결과 확인 '+f(v('done'))+'명</p><b>학년별 (결과 확인 기준)</b><p>'+gn.map((n,i)=>n+' '+f(v('grade-'+(i+1)))+'명').join(' · ')+'</p><b>캐릭터별</b><p>'+['M','E','F','K','H'].map(t=>TYPES[t].e+' '+TYPES[t].n+' '+f(v('type-'+t))+'명').join('<br>')+'</p></div>'
- +'<button class="btn" onclick="stats()">새로고침</button><button class="btn sub" onclick="home()">첫 화면으로</button><small>이 집계는 익명의 숫자만 세며, 이름이나 답변은 저장하지 않아요.</small>'}
+async function stats(){const today=dayKey();$.innerHTML='<h2>📊 방문 집계</h2><div class="card center"><small>불러오는 중...</small></div>';
+ const days=[];for(let i=0;i<7;i++)days.push(new Date(Date.now()+9*3600e3-i*864e5).toISOString().slice(0,10));
+ const gk=[1,2,3,4].map(g=>'grade-'+g),tk=['M','E','F','K','H'].map(t=>'type-'+t);
+ const keys=['start','done'].concat(gk,tk,days.map(d=>'start-'+d),days.map(d=>'done-'+d));
+ const vals=await Promise.all(keys.map(getCnt));const v=k=>vals[keys.indexOf(k)];const f=x=>x===null?'오류':x;
+ const gn=['저학년','중학년','고학년','중학생'];const tn={M:'미스터리 추리 탐험가',E:'감정 공감 수집가',F:'판타지 세계 여행자',K:'지식 호기심 연구원',H:'웃음 폭탄 개그 대장'};
+ window._rows=[['구분','항목','인원']].concat([['누적','시작',v('start')],['누적','결과 확인',v('done')]],gn.map((n,i)=>['학년별',n,v('grade-'+(i+1))]),['M','E','F','K','H'].map(t=>['캐릭터별',tn[t],v('type-'+t)]),days.map(d=>['날짜별 시작',d,v('start-'+d)]),days.map(d=>['날짜별 결과 확인',d,v('done-'+d)]));
+ $.innerHTML='<h2>📊 방문 집계</h2><div class="card center"><small>'+today+' (오늘)</small><h1 style="margin:6px 0">'+f(v('done-'+today))+'명</h1><small>결과까지 본 사람 · 시작만 한 사람 포함 '+f(v('start-'+today))+'명</small></div>'
+ +'<div class="card"><b>전체 누적</b><p>시작 '+f(v('start'))+'명 / 결과 확인 '+f(v('done'))+'명</p><b>학년별 (결과 확인 기준)</b><p>'+gn.map((n,i)=>n+' '+f(v('grade-'+(i+1)))+'명').join(' · ')+'</p><b>캐릭터별</b><p>'+['M','E','F','K','H'].map(t=>TYPES[t].e+' '+TYPES[t].n+' '+f(v('type-'+t))+'명').join('<br>')+'</p><b>최근 7일</b><p>'+days.map(d=>d.slice(5)+' : 결과 '+f(v('done-'+d))+' / 시작 '+f(v('start-'+d))).join('<br>')+'</p></div>'
+ +'<button class="btn" onclick="stats()">새로고침</button><button class="btn sub" onclick="saveCSV()">📥 집계를 파일로 저장 (CSV)</button><button class="btn sub" onclick="home()">첫 화면으로</button><small>집계는 서버에 약 6개월 보관돼요(마지막 이용일 기준). 행사 후 꼭 CSV로 따로 저장해 두세요. 이름과 답변은 저장하지 않아요.</small>'}
+function saveCSV(){const csv='\ufeff'+(window._rows||[]).map(r=>r.join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='책취향탐험대_집계_'+dayKey()+'.csv';a.click()}
 function topType(){return Object.keys(S.ty).sort((a,b)=>S.ty[b]-S.ty[a])[0]}
 function home(){S.counted=false;S.likes=[];S.later=[];S.passes=[];S.seen=[];S.last=[];S.ints=[];S.time=999;S.grade=2;S.level=0;S.name='';$.innerHTML='<div class="center"><div class="big">🧭📚</div><h1>책취향탐험대</h1><h2>오늘은 어떤 이야기 속으로 들어갈래?</h2><p>12개의 짧은 미션으로 나의 독서 취향을 알아보고, 채움책방(부커스)에서 읽을 수 있는 책을 찾아 줄게요.</p><button class="btn" onclick="start()">탐험 시작!</button><p><small>방문 인원 집계를 위해 이용 횟수만 익명으로 세어요. 이름과 답은 저장하지 않아요.</small></p></div>'}
 function start(){cnt('start');cnt('start-'+dayKey());S.counted=false;S.q=0;S.ty={M:0,E:0,F:0,K:0,H:0};S.mo={H:0,T:0,E:0,W:0};quiz()}
