@@ -23,6 +23,14 @@ a.go{font-size:13px;color:var(--c);font-weight:700;text-decoration:none;cursor:p
 img.cv{width:100%;height:100%;object-fit:cover}.intro{font-size:13px;color:#555;margin:6px 0}
 @media print{.btn,.sw,.chips,.noprint{display:none!important}body{background:#fff}.card{box-shadow:none}}
 input.nm{font-family:inherit;font-size:16px;padding:10px;border:2px solid #d8d4ff;border-radius:10px;width:100%}
+.trk{position:relative;padding-top:22px;margin-top:4px}.walker{position:absolute;top:0;font-size:22px;transition:left .4s}.goal{position:absolute;right:-2px;top:0;font-size:22px}
+.scene{font-size:58px;text-align:center;letter-spacing:6px;animation:bob 2s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-6px)}}
+.qt{text-align:center;font-size:23px;line-height:1.4;margin:8px 0 14px}
+.ogrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.optc{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;background:#f7f6ff;border:2px solid #e2dfff;border-radius:16px;padding:14px 8px;font-family:inherit;cursor:pointer;min-height:120px;transition:.15s}
+.optc:hover,.optc:active{border-color:var(--c);transform:scale(1.03);background:#eeecff}
+.oi{font-size:42px;line-height:1}.ot{font-size:15px;line-height:1.35;text-align:center;word-break:keep-all}
+.big{animation:pop .6s ease-out}@keyframes pop{0%{transform:scale(.3);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
 label{font-weight:700;display:block;margin-top:14px}
 small{color:#777}
 </style></head><body><div class="app" id="app"></div>
@@ -2374,7 +2382,10 @@ function saveCSV(){const csv='\ufeff'+(window._rows||[]).map(r=>r.join(',')).joi
 function topType(){return Object.keys(S.ty).sort((a,b)=>S.ty[b]-S.ty[a])[0]}
 function home(){S.counted=false;S.likes=[];S.later=[];S.passes=[];S.seen=[];S.last=[];S.ints=[];S.time=999;S.grade=2;S.level=0;S.name='';$.innerHTML='<div class="center"><div class="big">🧭📚</div><h1>책취향탐험대</h1><h2>오늘은 어떤 이야기 속으로 들어갈래?</h2><p>12개의 짧은 미션으로 나의 독서 취향을 알아보고, 채움책방(부커스)에서 읽을 수 있는 책을 찾아 줄게요.</p><button class="btn" onclick="start()">탐험 시작!</button><p><small>방문 인원 집계를 위해 이용 횟수만 익명으로 세어요. 이름과 답은 저장하지 않아요.</small></p></div>'}
 function start(){cnt('start');cnt('start-'+dayKey());S.counted=false;S.q=0;S.ty={M:0,E:0,F:0,K:0,H:0};S.mo={H:0,T:0,E:0,W:0};quiz()}
-function quiz(){const [q,o]=Q[S.q];$.innerHTML='<div class="bar"><i style="width:'+(S.q/Q.length*100)+'%"></i></div><small>미션 '+(S.q+1)+' / '+Q.length+'</small><div class="card"><h2>'+q+'</h2>'+o.map((x,i)=>'<button class="opt" onclick="pick('+i+')">'+x[0]+'</button>').join('')+'</div>'}
+const SCENES=['🏫💡➡️🌑😱','🎬🍿🎞️','📚💭✨','⏳🚀🌍','🔔🏃‍♂️🎈','🎭⭐🎬','📕👀🔎','🧑‍🤝‍🧑💬🫶','🏝️🌴📕','📖😮💫','🪄✨🌈','🌤️🙂💬'];
+const ICONS=[['🔍','🤝','✨','🔬'],['🌌','🌈','🌀','📰'],['😂','😰','😭','🤩'],['🪐','🏯','😢','🕵️'],['😆','🧩','🎨','🔎'],['🕵️','🫂','🧙','🤡'],['🌑','🧡','✨','🖼️'],['👂','🧠','🤣','📚'],['🗺️','📖','😹','🔍'],['⏭️','💞','💡','🤭'],['🫥','💓','🐾','🧠'],['⚡','🌷','😄','🌟']];
+function quiz(){const [q,o]=Q[S.q];const pct=Math.round(S.q/Q.length*100);
+ $.innerHTML='<div class="trk"><div class="bar"><i style="width:'+pct+'%"></i></div><span class="walker" style="left:calc('+pct+'% - 4px)">🧭</span><span class="goal">🏆</span></div><small>미션 '+(S.q+1)+' / '+Q.length+'</small><div class="card"><div class="scene">'+SCENES[S.q]+'</div><h2 class="qt">'+q+'</h2><div class="ogrid">'+o.map((x,i)=>'<button class="optc" onclick="pick('+i+')"><span class="oi">'+ICONS[S.q][i]+'</span><span class="ot">'+x[0]+'</span></button>').join('')+'</div></div>'}
 function pick(i){const o=Q[S.q][1][i];for(const k in o[1])S.ty[k]+=o[1][k];for(const k in o[2])S.mo[k]+=o[2][k];S.q++;S.q<Q.length?quiz():result()}
 function result(){const t=topType(),T=TYPES[t];const sorted=Object.keys(S.ty).sort((a,b)=>S.ty[b]-S.ty[a]);const sec=TYPES[sorted[1]];
  $.innerHTML='<div class="card center" style="border:4px solid var(--c)"><small>나의 독서 캐릭터 카드</small><div class="big">'+T.e+'</div><h1>'+T.n+'</h1><p>'+T.d+'</p><p><small>두 번째 성향: '+sec.e+' '+sec.n+'</small></p></div><button class="btn" onclick="setup()">내게 맞는 책 찾기</button><button class="btn sub" onclick="home()">다시 하기</button>'}
